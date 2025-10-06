@@ -20,9 +20,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        /* Style for the active chat item */
         .chat-item.active {
-            background-color: #e0f2fe; /* light-blue-100 */
+            background-color: #e0f2fe;
+        }
+        /* Simple transition for emoji picker */
+        #emoji-picker {
+            transition: opacity 0.2s, transform 0.2s;
         }
     </style>
 </head>
@@ -60,7 +63,6 @@
                 <div class="mt-4">
                     <h2 class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">Direct Messages</h2>
                     <ul id="dm-list">
-                        <!-- DM items will be populated here if an API for them exists -->
                         <p class="px-2 py-2 text-sm text-gray-400">No direct messages.</p>
                     </ul>
                 </div>
@@ -84,20 +86,20 @@
             </header>
 
             <!-- Chat Messages Area -->
-            <main id="chat-messages" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
-                <div id="loading" class="flex justify-center items-center h-full">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-            </main>
+            <main id="chat-messages" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4"></main>
 
             <!-- Footer with Input -->
-            <footer class="bg-gray-50 p-4 border-t border-gray-200">
+            <footer class="bg-gray-50 p-4 border-t border-gray-200 relative">
+                 <!-- Emoji Picker -->
+                <div id="emoji-picker" class="hidden absolute bottom-full mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-2">
+                    <!-- Emojis will be populated by JS -->
+                </div>
                 <div class="flex items-center bg-white border border-gray-200 rounded-full p-2 shadow-sm">
-                    <button class="text-gray-500 hover:text-blue-600 p-2">
+                    <button id="emoji-btn" class="text-gray-500 hover:text-blue-600 p-2">
                         <i data-lucide="smile" class="w-6 h-6"></i>
                     </button>
-                    <input type="text" placeholder="Type a message..." class="flex-1 bg-transparent px-4 py-2 text-gray-700 focus:outline-none">
-                    <button class="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200">
+                    <input type="text" id="message-input" placeholder="Type a message..." class="flex-1 bg-transparent px-4 py-2 text-gray-700 focus:outline-none">
+                    <button id="send-btn" class="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200">
                          <i data-lucide="send" class="w-6 h-6"></i>
                     </button>
                 </div>
@@ -108,93 +110,117 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const chatContainer = document.getElementById('chat-messages');
-            const loadingIndicator = document.getElementById('loading');
             const searchInput = document.getElementById('search-input');
             const chatTitle = document.getElementById('chat-title');
             const chatStatus = document.getElementById('chat-status');
-            const dmList = document.getElementById('dm-list');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const emojiBtn = document.getElementById('emoji-btn');
+            const emojiPicker = document.getElementById('emoji-picker');
 
-            // Store all messages from the API to enable searching
             let allMessages = [];
-
             const apiUrl = 'https://api.github.com/repos/Bob-2015/bob-2015.github.io/contents/chat/chat.txt?ref=main';
 
-            // Function to render messages to the chat container
             const renderMessages = (messages) => {
-                chatContainer.innerHTML = ''; // Clear previous messages
-                if (messages.length === 0) {
+                chatContainer.innerHTML = '';
+                if (!messages || messages.length === 0) {
                     chatContainer.innerHTML = '<p class="text-center text-gray-500">No messages found.</p>';
                     return;
                 }
-                messages.forEach(line => {
-                    if (line.trim() === '') return;
-                    const messageWrapper = document.createElement('div');
-                    const messageBubble = document.createElement('div');
-                    const isSent = Math.random() > 0.5;
-
-                    if (isSent) {
-                        messageWrapper.className = 'flex justify-end';
-                        messageBubble.className = 'bg-blue-600 text-white rounded-2xl rounded-br-lg p-3 max-w-xs md:max-w-md shadow';
-                    } else {
-                        messageWrapper.className = 'flex justify-start';
-                        messageBubble.className = 'bg-gray-200 text-gray-800 rounded-2xl rounded-bl-lg p-3 max-w-xs md:max-w-md shadow';
-                    }
-
-                    messageBubble.textContent = line;
-                    messageWrapper.appendChild(messageBubble);
-                    chatContainer.appendChild(messageWrapper);
-                });
+                messages.forEach(line => addMessageBubble(line, false)); // Add existing messages as "received"
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             };
 
-            // Function to fetch messages
+            const addMessageBubble = (text, isSent) => {
+                if (text.trim() === '') return;
+                const messageWrapper = document.createElement('div');
+                const messageBubble = document.createElement('div');
+
+                if (isSent) {
+                    messageWrapper.className = 'flex justify-end';
+                    messageBubble.className = 'bg-blue-600 text-white rounded-2xl rounded-br-lg p-3 max-w-xs md:max-w-md shadow animate-fade-in';
+                } else {
+                    messageWrapper.className = 'flex justify-start';
+                    messageBubble.className = 'bg-gray-200 text-gray-800 rounded-2xl rounded-bl-lg p-3 max-w-xs md:max-w-md shadow animate-fade-in';
+                }
+                messageBubble.textContent = text;
+                messageWrapper.appendChild(messageBubble);
+                chatContainer.appendChild(messageWrapper);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            };
+
             const fetchMessages = () => {
-                loadingIndicator.style.display = 'flex';
-                chatContainer.innerHTML = '';
+                chatContainer.innerHTML = `<div class="flex justify-center items-center h-full"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>`;
                 fetch(apiUrl)
                     .then(response => response.ok ? response.json() : Promise.reject(response.statusText))
                     .then(data => {
-                        const decodedContent = atob(data.content);
-                        allMessages = decodedContent.split('\n').filter(line => line.trim() !== '');
-                        loadingIndicator.style.display = 'none';
-                        renderMessages(allMessages);
+                        // The user is correct, GitHub API puts base64 content in the 'content' property.
+                        if (data && data.content) {
+                            const decodedContent = atob(data.content);
+                            allMessages = decodedContent.split('\n').filter(line => line.trim() !== '');
+                            renderMessages(allMessages);
+                        } else {
+                            throw new Error("API response did not contain 'content' field.");
+                        }
                     })
                     .catch(error => {
                         console.error('Error fetching chat data:', error);
-                        loadingIndicator.style.display = 'none';
-                        chatContainer.innerHTML = `<div class="text-center text-red-500 p-4"><strong>Failed to load messages.</strong></div>`;
+                        chatContainer.innerHTML = `<div class="text-center text-red-500 p-4"><strong>Failed to load messages.</strong><p>${error.message}</p></div>`;
                     });
             };
             
-            // Search functionality
             searchInput.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase();
-                if (searchTerm === '') {
-                    renderMessages(allMessages); // Show all messages if search is cleared
-                } else {
-                    const filteredMessages = allMessages.filter(msg => msg.toLowerCase().includes(searchTerm));
-                    renderMessages(filteredMessages);
+                const filteredMessages = allMessages.filter(msg => msg.toLowerCase().includes(searchTerm));
+                renderMessages(filteredMessages);
+            });
+
+            const sendMessage = () => {
+                const text = messageInput.value;
+                if (text.trim() !== '') {
+                    addMessageBubble(text, true); // Add new message as "sent"
+                    messageInput.value = ''; // Clear input
+                    messageInput.focus();
+                    // NOTE: This message is only added to your screen. It is not saved to the server.
+                }
+            };
+
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendMessage();
                 }
             });
 
-            // Handle switching chats (placeholder logic)
-            document.querySelectorAll('.chat-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-
-                    const chatName = item.querySelector('span').textContent;
-                    chatTitle.textContent = `#${chatName}`;
-                    chatStatus.textContent = 'Public Channel';
-                    fetchMessages();
-                });
+            // --- Emoji Picker Logic ---
+            const emojis = ['😀', '😂', '😍', '👍', '❤️', '🤔', '🎉', '🔥', '🚀', '💯', '🙏', '😭'];
+            emojis.forEach(emoji => {
+                const button = document.createElement('button');
+                button.className = 'p-1 text-2xl rounded-lg hover:bg-gray-200';
+                button.textContent = emoji;
+                button.onclick = () => {
+                    messageInput.value += emoji;
+                    emojiPicker.classList.add('hidden');
+                    messageInput.focus();
+                };
+                emojiPicker.appendChild(button);
             });
 
-            // Initial load
-            fetchMessages();
+            emojiBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                emojiPicker.classList.toggle('hidden');
+            });
+            
+            // Hide emoji picker if clicking outside
+            document.addEventListener('click', (e) => {
+                if (!emojiPicker.contains(e.target) && !emojiBtn.contains(e.target)) {
+                    emojiPicker.classList.add('hidden');
+                }
+            });
 
-            // Initialize Lucide icons
+
+            fetchMessages();
             lucide.createIcons();
         });
     </script>
