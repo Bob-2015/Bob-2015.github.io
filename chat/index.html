@@ -1,304 +1,203 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-    <title>Modern Messenger</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tailwind CSS for modern styling -->
+    <title>Modern Messenger</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons for UI elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* A little bit of custom CSS for scrollbars and other minor tweaks */
-        ::-webkit-scrollbar {
-            width: 8px;
+        body {
+            font-family: 'Inter', sans-serif;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        /* Style for the active chat item */
+        .chat-item.active {
+            background-color: #e0f2fe; /* light-blue-100 */
         }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-        .dark ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #475569;
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        /* Typing indicator animation */
-        .ellipsis span { opacity: 0; animation: ellipsis 1.4s infinite; }
-        .ellipsis span:nth-child(2) { animation-delay: 0.2s; }
-        .ellipsis span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes ellipsis { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
     </style>
 </head>
-<body class="h-full bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-sans antialiased">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <div id="app" class="h-full flex flex-col">
-        <!-- Main container -->
-        <div class="container mx-auto flex-1 flex h-full p-2 sm:p-4 gap-4">
-
-            <!-- Sidebar for navigation -->
-            <aside class="w-16 sm:w-20 md:w-64 flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-2 sm:p-4">
-                <h1 class="text-xl sm:text-2xl font-bold mb-4 hidden md:block">Messenger</h1>
-                <div class="flex-1 space-y-2">
-                    <button class="tab-btn w-full flex items-center justify-center md:justify-start gap-3 p-3 rounded-lg bg-blue-500 text-white shadow" onclick="switchTab('public')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        <span class="hidden md:inline">Public Chat</span>
-                    </button>
-                    <button class="tab-btn w-full flex items-center justify-center md:justify-start gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" onclick="switchTab('dms')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        <span class="hidden md:inline">DMs</span>
-                    </button>
-                    <button class="tab-btn w-full flex items-center justify-center md:justify-start gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" onclick="switchTab('groups')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        <span class="hidden md:inline">Groups</span>
-                    </button>
+    <!-- Main App Layout -->
+    <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl flex h-[90vh] overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-1/3 bg-gray-50 border-r border-gray-200 flex flex-col">
+            <!-- Sidebar Header with Search -->
+            <header class="p-4 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-gray-800 mb-4">Chats</h1>
+                <div class="relative">
+                    <input type="search" id="search-input" placeholder="Search messages..." class="w-full pl-10 pr-4 py-2 bg-gray-100 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
                 </div>
-                 <div class="mt-auto">
-                    <button class="w-full flex items-center justify-center md:justify-start gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" onclick="showGlobalSearch()">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                        <span class="hidden md:inline">Search</span>
-                    </button>
-                </div>
-            </aside>
+            </header>
 
-            <!-- Main Chat Area -->
-            <main class="flex-1 flex flex-col bg-white dark:bg-slate-800 rounded-2xl shadow-lg">
-                <!-- Public Chat View -->
-                <div id="public-chat-view" class="chat-view active flex flex-col h-full">
-                    <header class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-4">
-                         <h2 class="text-xl font-bold">Public Chat</h2>
-                    </header>
-                    <div id="chat" class="flex-1 p-4 overflow-y-auto space-y-4"></div>
-                    <div id="public-controls" class="p-4 border-t border-slate-200 dark:border-slate-700"></div>
+            <!-- Chat List -->
+            <nav class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                <!-- Public Chats Section -->
+                <div>
+                    <h2 class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">Public</h2>
+                    <ul>
+                        <li>
+                            <a href="#" id="public-chat-btn" class="chat-item flex items-center p-3 rounded-lg hover:bg-gray-100 transition-colors duration-200 active">
+                                <div class="w-10 h-10 bg-blue-500 text-white flex items-center justify-center rounded-full mr-3">#</div>
+                                <span class="font-semibold text-gray-700">general</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+                <!-- Direct Messages Section -->
+                <div class="mt-4">
+                    <h2 class="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">Direct Messages</h2>
+                    <ul id="dm-list">
+                        <!-- DM items will be populated here if an API for them exists -->
+                        <p class="px-2 py-2 text-sm text-gray-400">No direct messages.</p>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
 
-                <!-- DMs View -->
-                <div id="dm-view" class="chat-view hidden h-full">
-                    <div class="flex h-full">
-                        <div class="w-1/3 border-r border-slate-200 dark:border-slate-700 flex flex-col">
-                            <h3 class="p-4 text-lg font-semibold">Friends</h3>
-                            <div id="friend-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
-                        </div>
-                        <div class="w-2/3 flex flex-col">
-                            <div id="dm-chat-header" class="p-4 border-b border-slate-200 dark:border-slate-700"></div>
-                            <div id="dm-chat" class="flex-1 p-4 overflow-y-auto space-y-4"></div>
-                            <div id="dm-controls" class="p-4 border-t border-slate-200 dark:border-slate-700"></div>
-                        </div>
+        <!-- Main Chat Area -->
+        <section class="w-2/3 flex flex-col bg-white">
+            <!-- Header -->
+            <header class="bg-white text-gray-800 p-4 border-b border-gray-200 flex items-center justify-between shadow-sm">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <img src="https://placehold.co/40x40/ffffff/3B82F6?text=G" alt="Group Avatar" class="w-10 h-10 rounded-full">
+                        <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-400 border-2 border-white"></span>
+                    </div>
+                    <div class="ml-4">
+                        <h2 id="chat-title" class="text-lg font-semibold">#general</h2>
+                        <p id="chat-status" class="text-xs text-gray-500">Public Channel</p>
                     </div>
                 </div>
+            </header>
 
-                <!-- Groups View -->
-                <div id="group-view" class="chat-view hidden h-full">
-                    <div class="flex h-full">
-                        <div class="w-1/3 border-r border-slate-200 dark:border-slate-700 flex flex-col">
-                            <div class="p-4 flex justify-between items-center">
-                                <h3 class="text-lg font-semibold">Groups</h3>
-                                <button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" onclick="createGroup()">➕</button>
-                            </div>
-                            <div id="group-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
-                        </div>
-                        <div class="w-2/3 flex flex-col">
-                            <div id="group-header" class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3 cursor-pointer" style="display: none;"></div>
-                            <div id="group-chat" class="flex-1 p-4 overflow-y-auto space-y-4"></div>
-                            <div id="group-controls" class="p-4 border-t border-slate-200 dark:border-slate-700"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Shared Controls (Template) -->
-                <div id="controls-template" class="hidden">
-                    <div id="typing-indicator" class="h-5 text-sm italic text-slate-500 px-2"></div>
-                    <div id="reply-preview" class="hidden p-2 bg-slate-100 dark:bg-slate-700 rounded-lg mb-2 flex justify-between items-center text-sm"></div>
-                    <div id="emoji-bar" class="flex flex-wrap gap-2 mb-2 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg"></div>
-                    <div class="flex items-center gap-2">
-                         <div class="flex-shrink-0">
-                             <input type="text" class="username-input bg-slate-100 dark:bg-slate-700 rounded-full px-4 py-2 w-32 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Username">
-                         </div>
-                        <div class="relative flex-1">
-                            <input type="text" class="message-input w-full bg-slate-100 dark:bg-slate-700 rounded-full py-2 pl-4 pr-28 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type a message...">
-                            <div class="absolute right-1 top-1/2 -translate-y-1/2 flex items-center">
-                                 <button class="sendImageBtn p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600">🖼️</button>
-                                 <button class="addEmojiBtn p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600">😀</button>
-                            </div>
-                        </div>
-                        <button class="send-btn bg-blue-500 text-white rounded-full px-5 py-2 font-semibold hover:bg-blue-600 disabled:bg-slate-400">Send</button>
-                    </div>
-                    <input type="file" class="imageUpload hidden" accept="image/*">
-                    <input type="file" class="emojiUpload hidden" accept="image/png, image/gif">
+            <!-- Chat Messages Area -->
+            <main id="chat-messages" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div id="loading" class="flex justify-center items-center h-full">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
             </main>
-        </div>
-        
-        <p class="text-xs text-center text-slate-400 dark:text-slate-600 pb-2">
-            Note: This chat is file-based. Simultaneous actions might result in one being lost.
-        </p>
-    </div>
-    
-    <!-- All hidden inputs for file uploads -->
-    <input type="file" id="pfpUpload" class="hidden" accept="image/*">
-    <input type="file" id="bannerUpload" class="hidden" accept="image/*">
 
-    <!-- All Modals -->
-    <div id="profile-preview-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center" onclick="this.style.display='none'">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
-            <div id="profile-modal-banner" class="h-32 bg-slate-200 dark:bg-slate-700 bg-cover bg-center"></div>
-            <div class="p-4 relative">
-                <div id="profile-modal-pfp" class="absolute -top-12 left-4 w-24 h-24 rounded-full bg-slate-300 dark:bg-slate-600 border-4 border-white dark:border-slate-800 bg-cover bg-center">
-                    <div id="profile-modal-status" class="absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white dark:border-slate-800"></div>
+            <!-- Footer with Input -->
+            <footer class="bg-gray-50 p-4 border-t border-gray-200">
+                <div class="flex items-center bg-white border border-gray-200 rounded-full p-2 shadow-sm">
+                    <button class="text-gray-500 hover:text-blue-600 p-2">
+                        <i data-lucide="smile" class="w-6 h-6"></i>
+                    </button>
+                    <input type="text" placeholder="Type a message..." class="flex-1 bg-transparent px-4 py-2 text-gray-700 focus:outline-none">
+                    <button class="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200">
+                         <i data-lucide="send" class="w-6 h-6"></i>
+                    </button>
                 </div>
-                <div class="pt-12">
-                    <h3 id="profile-modal-username" class="text-2xl font-bold"></h3>
-                    <p id="profile-modal-bio" class="text-slate-500 mt-1"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div id="search-modal-backdrop" class="fixed inset-0 bg-black/50 z-50 hidden items-start justify-center pt-20" onclick="this.style.display='none'">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-xl" onclick="event.stopPropagation()">
-            <input type="text" id="global-search-input" placeholder="Search users, groups, or announcements..." oninput="performSearch()" class="w-full p-4 bg-transparent text-lg outline-none border-b border-slate-200 dark:border-slate-700">
-            <div id="search-results" class="max-h-[60vh] overflow-y-auto"></div>
-            <div class="p-2 text-right">
-                 <button onclick="document.getElementById('search-modal-backdrop').style.display='none'" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600">Close</button>
-            </div>
-        </div>
+            </footer>
+        </section>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const GITHUB_API_URL = 'https://api.github.com/repos/Bob-2015/bob-2015.github.io/contents/chat/chat.txt?ref=main';
-        // Note: Writing to a file-based chat via GitHub API from the client-side is complex and requires authentication.
-        // The `updateFile` functionality has been disabled. This is now a read-only chat client.
-        const TYPING_STATUS_URL = 'http://192.168.3.19:8181/servers/chat/copy%202/typing.json';
-        const READ_STATUS_URL = 'http://192.168.3.19:8181/servers/chat/copy%202/read-status.json';
-        const DEFAULT_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
-        
-        // --- DOM ELEMENTS ---
-        const chatBox = document.getElementById('chat');
-        const dmChatBox = document.getElementById('dm-chat');
-        const groupChatBox = document.getElementById('group-chat');
-        const friendList = document.getElementById('friend-list');
-        const groupList = document.getElementById('group-list');
-        const searchInput = document.getElementById('global-search-input');
-        const searchResultsContainer = document.getElementById('search-results');
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatContainer = document.getElementById('chat-messages');
+            const loadingIndicator = document.getElementById('loading');
+            const searchInput = document.getElementById('search-input');
+            const chatTitle = document.getElementById('chat-title');
+            const chatStatus = document.getElementById('chat-status');
+            const dmList = document.getElementById('dm-list');
 
-        // --- STATE & OBSERVERS ---
-        let customEmojis = {}; 
-        let userProfiles = {};
-        let friends = new Set();
-        let groups = {};
-        let customTags = {};
-        let lastKnownSha = null;
-        let lastKnownContent = '';
-        let replyContext = null; 
-        let typingTimeout;
-        let currentTab = 'public';
-        let currentDmUser = null;
-        let currentGroupId = null;
-        let allMessages = [];
+            // Store all messages from the API to enable searching
+            let allMessages = [];
 
-        // --- CORE LOGIC ---
-        async function fetchMessages() {
-            try {
-                const headers = {};
-                // If we've fetched before, use the SHA to check for changes
-                if (lastKnownSha) {
-                    headers['If-None-Match'] = lastKnownSha;
-                }
-                const response = await fetch(GITHUB_API_URL, { cache: 'no-store', headers });
-                
-                // 304 Not Modified means the file hasn't changed.
-                if (response.status === 304) {
+            const apiUrl = 'https://api.github.com/repos/Bob-2015/bob-2015.github.io/contents/chat/chat.txt?ref=main';
+
+            // Function to render messages to the chat container
+            const renderMessages = (messages) => {
+                chatContainer.innerHTML = ''; // Clear previous messages
+                if (messages.length === 0) {
+                    chatContainer.innerHTML = '<p class="text-center text-gray-500">No messages found.</p>';
                     return;
                 }
+                messages.forEach(line => {
+                    if (line.trim() === '') return;
+                    const messageWrapper = document.createElement('div');
+                    const messageBubble = document.createElement('div');
+                    const isSent = Math.random() > 0.5;
 
-                if (!response.ok) {
-                    throw new Error(`GitHub API responded with ${response.status}`);
-                }
-                
-                lastKnownSha = response.headers.get('ETag');
-                const data = await response.json();
-                
-                // The content from GitHub API is base64 encoded.
-                const decodedContent = atob(data.content);
-
-                if (decodedContent !== lastKnownContent) {
-                    lastKnownContent = decodedContent;
-                    parseAllMessages(decodedContent);
-                    renderChat();
-                }
-            } catch (error) { 
-                console.error('Error fetching chat file from GitHub:', error); 
-                // Display error in chat
-                const activeChatBox = getActiveChatBox();
-                if (activeChatBox) {
-                    activeChatBox.innerHTML = `<div class="text-center text-red-500 p-4">Could not load chat. Is the repository public?</div>`;
-                }
-            }
-        }
-
-        function parseAllMessages(data) {
-            // Reset aggregated data
-            customEmojis = {}; userProfiles = {}; friends.clear(); groups = {}; customTags = {};
-            const deletedMessageIds = new Set();
-            const editedMessages = {};
-            allMessages = []; // Clear previous messages
-
-            const lines = data.split('\n').filter(line => line.trim() !== '');
-
-            lines.forEach(line => {
-                try {
-                    const msg = JSON.parse(line);
-                    allMessages.push(msg); // Store raw message
-                    
-                    switch(msg.type) {
-                        case 'emoji': customEmojis[msg.name] = msg.content; break;
-                        case 'delete': deletedMessageIds.add(msg.targetId); break;
-                        case 'edit': editedMessages[msg.targetId] = msg.newContent; break;
-                        case 'set_profile_picture': userProfiles[msg.username] = { ...userProfiles[msg.username], pfp: msg.picture }; break;
-                        case 'set_banner': userProfiles[msg.username] = { ...userProfiles[msg.username], banner: msg.banner }; break;
-                        case 'set_status': userProfiles[msg.username] = { ...userProfiles[msg.username], status: msg.status }; break;
-                        case 'set_bio': userProfiles[msg.username] = { ...userProfiles[msg.username], bio: msg.bio }; break;
-                        case 'accept_friend':
-                            if (msg.users.includes(getActiveUsername())) {
-                               const friend = msg.users.find(u => u !== getActiveUsername());
-                               friends.add(friend);
-                            }
-                            break;
-                        case 'create_group':
-                            groups[msg.groupId] = { id: msg.groupId, name: msg.name, members: new Set([msg.creator]), admins: new Set([msg.creator]), picture: null, banner: null, description: '', type: msg.groupType };
-                            break;
-                        case 'edit_group_name': if(groups[msg.groupId]) groups[msg.groupId].name = msg.newName; break;
-                        case 'edit_group_picture': if(groups[msg.groupId]) groups[msg.groupId].picture = msg.picture; break;
-                        case 'edit_group_banner': if(groups[msg.groupId]) groups[msg.groupId].banner = msg.banner; break;
-                        case 'edit_group_description': if(groups[msg.groupId]) groups[msg.groupId].description = msg.description; break;
-                        case 'add_group_member': if(groups[msg.groupId]) groups[msg.groupId].members.add(msg.userToAdd); break;
-                        case 'make_group_admin': if(groups[msg.groupId]) groups[msg.groupId].admins.add(msg.userToPromote); break;
-                        case 'delete_group': delete groups[msg.groupId]; break;
-                        case 'create_tag': customTags[msg.name] = { users: msg.users }; break;
+                    if (isSent) {
+                        messageWrapper.className = 'flex justify-end';
+                        messageBubble.className = 'bg-blue-600 text-white rounded-2xl rounded-br-lg p-3 max-w-xs md:max-w-md shadow';
+                    } else {
+                        messageWrapper.className = 'flex justify-start';
+                        messageBubble.className = 'bg-gray-200 text-gray-800 rounded-2xl rounded-bl-lg p-3 max-w-xs md:max-w-md shadow';
                     }
-                } catch (e) { console.warn("Could not parse line:", line, e) }
-            });
+
+                    messageBubble.textContent = line;
+                    messageWrapper.appendChild(messageBubble);
+                    chatContainer.appendChild(messageWrapper);
+                });
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            };
+
+            // Function to fetch messages
+            const fetchMessages = () => {
+                loadingIndicator.style.display = 'flex';
+                chatContainer.innerHTML = '';
+                fetch(apiUrl)
+                    .then(response => response.ok ? response.json() : Promise.reject(response.statusText))
+                    .then(data => {
+                        const decodedContent = atob(data.content);
+                        allMessages = decodedContent.split('\n').filter(line => line.trim() !== '');
+                        loadingIndicator.style.display = 'none';
+                        renderMessages(allMessages);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching chat data:', error);
+                        loadingIndicator.style.display = 'none';
+                        chatContainer.innerHTML = `<div class="text-center text-red-500 p-4"><strong>Failed to load messages.</strong></div>`;
+                    });
+            };
             
-            // Apply edits and deletions
-            allMessages = allMessages.filter(msg => !deletedMessageIds.has(msg.timestamp));
-            allMessages.forEach(msg => {
-                if (editedMessages[msg.timestamp]) {
-                    msg.content = editedMessages[msg.timestamp];
-                    msg.edited = true;
+            // Search functionality
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                if (searchTerm === '') {
+                    renderMessages(allMessages); // Show all messages if search is cleared
+                } else {
+                    const filteredMessages = allMessages.filter(msg => msg.toLowerCase().includes(searchTerm));
+                    renderMessages(filteredMessages);
                 }
             });
 
-            updateSidebars();
-        }
+            // Handle switching chats (placeholder logic)
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
 
-        function parseTextFormatting(text) {
-            let html = escapeHTML(text);
-            html = html.replace(/
+                    const chatName = item.querySelector('span').textContent;
+                    chatTitle.textContent = `#${chatName}`;
+                    chatStatus.textContent = 'Public Channel';
+                    fetchMessages();
+                });
+            });
+
+            // Initial load
+            fetchMessages();
+
+            // Initialize Lucide icons
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
+
